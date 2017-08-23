@@ -6,6 +6,8 @@
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
 use std::convert::TryFrom;
+use std::ffi::CStr;
+use std::ptr::null;
 
 // Some #defined symbols we have to implement manually, because bindgen has no way
 // of knowing the type of the defined constant.
@@ -21,6 +23,63 @@ macro_rules! check {
             e => Err(e),
         }
     };
+    (@string $expression:expr) => {
+        match $expression {
+            x if x == null() => None,
+            x => Some(CStr::from_ptr(x).to_str().unwrap())
+        }
+    }
+}
+
+/// Extensions for `ZydisMnemonic`
+pub trait ZydisMnemonicMethods {
+    fn get_string(self) -> Option<&'static str>;
+}
+
+impl ZydisMnemonicMethods for ZydisMnemonic {
+    fn get_string(self) -> Option<&'static str> {
+        unsafe { check!(@string ZydisMnemonicGetString(self)) }
+    }
+}
+
+/// Extensions for `ZydisRegister`
+pub trait ZydisRegisterMethods {
+    fn get_id(self) -> Option<i16>;
+
+    fn get_class(self) -> ZydisRegisterClass;
+
+    fn get_string(self) -> Option<&'static str>;
+
+    fn get_width(self) -> ZydisRegisterWidth;
+
+    fn get_width64(self) -> ZydisRegisterWidth;
+}
+
+impl ZydisRegisterMethods for ZydisRegister {
+    fn get_id(self) -> Option<i16> {
+        unsafe {
+            match ZydisRegisterGetId(self) {
+                -1 => None,
+                x => Some(x),
+            }
+        }
+    }
+
+    fn get_class(self) -> ZydisRegisterClass {
+        unsafe { ZydisRegisterGetClass(self) }
+    }
+
+    fn get_string(self) -> Option<&'static str> {
+        unsafe { check!(@string ZydisRegisterGetString(self)) }
+    }
+
+    fn get_width(self) -> ZydisRegisterWidth {
+        unsafe { ZydisRegisterGetWidth(self) }
+    }
+
+    fn get_width64(self) -> ZydisRegisterWidth {
+        unsafe { ZydisRegisterGetWidth64(self) }
+    }
 }
 
 impl TryFrom<ZydisDecodedInstruction> for ZydisEncoderRequest {
