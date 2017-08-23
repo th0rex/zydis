@@ -1,5 +1,6 @@
 extern crate zydis_sys;
 
+use std::ffi::CStr;
 use std::mem::uninitialized;
 use std::os::raw::c_void;
 
@@ -35,17 +36,17 @@ pub struct Decoder {
 }
 
 impl Decoder {
-    pub fn new(mode: ZydisMachineMode, width: ZydisAddressWidth) -> Result<Decoder> {
+    pub fn new(mode: ZydisMachineModes, width: ZydisAddressWidths) -> Result<Decoder> {
         unsafe {
             let mut decoder = uninitialized();
-            check!(ZydisDecoderInit(&mut decoder, mode, width), Decoder{decoder})
+            check!(ZydisDecoderInit(&mut decoder, mode as _, width as _), Decoder{decoder})
         }
     }
 
-    pub fn new_granularity(mode: ZydisMachineMode, width: ZydisAddressWidth, granularity: ZydisDecodeGranularity) -> Result<Decoder> {
+    pub fn new_granularity(mode: ZydisMachineModes, width: ZydisAddressWidths, granularity: ZydisDecodeGranularities) -> Result<Decoder> {
         unsafe {
             let mut decoder = uninitialized();
-            check!(ZydisDecoderInitEx(&mut decoder, mode, width, granularity), Decoder{decoder})
+            check!(ZydisDecoderInitEx(&mut decoder, mode as _, width as _, granularity as _), Decoder{decoder})
         }
     }
 
@@ -90,17 +91,17 @@ pub struct Formatter {
 }
 
 impl Formatter {
-    pub fn new(style: ZydisFormatterStyle) -> Result<Formatter> {
+    pub fn new(style: ZydisFormatterStyles) -> Result<Formatter> {
         unsafe {
             let mut formatter = uninitialized();
-            check!(ZydisFormatterInit(&mut formatter, style), Formatter{formatter})
+            check!(ZydisFormatterInit(&mut formatter, style as _), Formatter{formatter})
         }
     }
 
-    pub fn new_extended(style: ZydisFormatterStyle, flags: ZydisFormatterFlags, address_format: ZydisFormatterAddressFormat, displacement_format: ZydisFormatterDisplacementFormat, immediate_format: ZydisFormatterImmediateFormat) -> Result<Formatter> {
+    pub fn new_extended(style: ZydisFormatterStyles, flags: ZydisFormatterFlags, address_format: ZydisFormatterAddressFormats, displacement_format: ZydisFormatterDisplacementFormats, immediate_format: ZydisFormatterImmediateFormats) -> Result<Formatter> {
         unsafe {
             let mut formatter = uninitialized();
-            check!(ZydisFormatterInitEx(&mut formatter, style, flags, address_format, displacement_format, immediate_format), Formatter{formatter})
+            check!(ZydisFormatterInitEx(&mut formatter, style as _, flags, address_format as _, displacement_format as _, immediate_format as _), Formatter{formatter})
         }
     }
 
@@ -108,6 +109,12 @@ impl Formatter {
         unsafe {
             check!(ZydisFormatterFormatInstruction(&self.formatter, &mut instruction, buffer.as_ptr() as _, buffer.len()), ())
         }
+    }
+
+    pub fn format_instruction_str(&self, instruction: ZydisDecodedInstruction, size: usize) -> Result<String> {
+        let mut buffer = vec![0u8; size];
+        self.format_instruction(instruction, &mut buffer)?;
+        Ok(unsafe{CStr::from_ptr(buffer.as_ptr() as _)}.to_string_lossy().into())
     }
 
     pub fn set_hook(&mut self, hook: ZydisFormatterHookType, callback: usize) -> Result<usize> {
