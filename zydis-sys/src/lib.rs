@@ -7,6 +7,7 @@ include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
 use std::convert::TryFrom;
 use std::ffi::CStr;
+use std::mem::uninitialized;
 use std::ptr::null;
 
 // Some #defined symbols we have to implement manually, because bindgen has no way
@@ -44,6 +45,13 @@ impl ZydisDecodedInstruction {
         unsafe {
             let mut address = 0u64;
             check!(ZydisUtilsCalcAbsoluteTargetAddress(self, operand, &mut address), address)
+        }
+    }
+
+    pub fn get_cpu_flags_by_action(&self, action: ZydisCPUFlagAction) -> Result<ZydisCPUFlagMask, ZydisStatusCode> {
+        unsafe {
+            let mut code = uninitialized();
+            check!(ZydisGetCPUFlagsByAction(self, action, &mut code), code)
         }
     }
 }
@@ -104,7 +112,7 @@ impl TryFrom<ZydisDecodedInstruction> for ZydisEncoderRequest {
 
     fn try_from(value: ZydisDecodedInstruction) -> Result<Self, ZydisStatusCode> {
         unsafe {
-            let mut ret = std::mem::uninitialized();
+            let mut ret = uninitialized();
             check!(
                 ZydisEncoderDecodedInstructionToRequest(&value, &mut ret),
                 ret
