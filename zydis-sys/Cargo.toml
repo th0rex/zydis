@@ -1,0 +1,6 @@
+[package]
+name = "zydis-sys"
+version = "0.1.0"
+authors = ["th0rex"]
+
+[dependencies]
