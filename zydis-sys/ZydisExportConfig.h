@@ -1,0 +1,2 @@
+#define ZYDIS_EXPORT
+#define ZYDIS_NO_EXPORT

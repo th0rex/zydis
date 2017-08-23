@@ -1,0 +1,3 @@
+[submodule "zydis-sys/third_party/zydis"]
+	path = zydis-sys/third_party/zydis
+	url = git@github.com:zyantific/zydis.git
