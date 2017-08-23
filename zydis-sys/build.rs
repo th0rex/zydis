@@ -45,7 +45,10 @@ fn build_bindings(out_path: PathBuf, wrapper: PathBuf) {
         .header(wrapper.to_str().unwrap())
         .clang_arg(format!("-I{}", ZYDIS_INCLUDE_PATH))
         .clang_arg(format!("-I{}", ZYDIS_SRC_PATH))
-        .clang_arg(format!("-I{}", env::current_dir().unwrap().to_str().unwrap()))
+        .clang_arg(format!(
+            "-I{}",
+            env::current_dir().unwrap().to_str().unwrap()
+        ))
         .clang_arg("-DZYDIS_ENABLE_FEATURE_EVEX")
         .clang_arg("-DZYDIS_ENABLE_FEATURE_MVEX")
         .clang_arg("-DZYDIS_ENABLE_FEATURE_FLAGS")
@@ -61,7 +64,9 @@ fn build_bindings(out_path: PathBuf, wrapper: PathBuf) {
         .generate()
         .expect("Could not generate bindings to zydis");
 
-    bindings.write_to_file(out_path.join("bindings.rs")).expect("Could not write bindings");
+    bindings
+        .write_to_file(out_path.join("bindings.rs"))
+        .expect("Could not write bindings");
 }
 
 fn main() {
@@ -70,8 +75,10 @@ fn main() {
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
     let wrapper = out_path.join("wrapper.h");
     {
-        let mut file = File::create(&wrapper).expect("Couldn't create wrapper file in output directory");
-        file.write_all(b"#include <Zydis/Zydis.h>\n#include <Zydis/Encoder.h>").expect("Couldn't write wrapper code to wrapper file");
+        let mut file =
+            File::create(&wrapper).expect("Couldn't create wrapper file in output directory");
+        file.write_all(b"#include <Zydis/Zydis.h>\n#include <Zydis/Encoder.h>")
+            .expect("Couldn't write wrapper code to wrapper file");
     }
 
     build_library();

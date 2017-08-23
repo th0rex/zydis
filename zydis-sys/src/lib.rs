@@ -1,5 +1,4 @@
 #![feature(try_from)]
-
 #![allow(non_upper_case_globals)]
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
@@ -30,7 +29,10 @@ impl TryFrom<ZydisDecodedInstruction> for ZydisEncoderRequest {
     fn try_from(value: ZydisDecodedInstruction) -> Result<Self, ZydisStatusCode> {
         unsafe {
             let mut ret = std::mem::uninitialized();
-            check!(ZydisEncoderDecodedInstructionToRequest(&value, &mut ret), ret)
+            check!(
+                ZydisEncoderDecodedInstructionToRequest(&value, &mut ret),
+                ret
+            )
         }
     }
 }
