@@ -16,6 +16,7 @@ pub const ZYDIS_FMTFLAG_UPPERCASE: ZydisFormatterFlags = 0x1;
 pub const ZYDIS_FMTFLAG_FORCE_SEGMENTS: ZydisFormatterFlags = 0x2;
 pub const ZYDIS_FMT_FLAG_FORCE_OPERANDSIZE: ZydisFormatterFlags = 0x4;
 
+#[macro_export]
 macro_rules! check {
     ($expression:expr, $ok:expr) => {
         match $expression as _ {
@@ -23,10 +24,26 @@ macro_rules! check {
             e => Err(e),
         }
     };
+    (@option $expression:expr, $ok:expr) => {
+        match $expression as _ {
+            ZYDIS_STATUS_SUCCESS => Ok(Some($ok)),
+            ZYDIS_STATUS_NO_MORE_DATA => Ok(None),
+            e => Err(e),
+        }
+    };
     (@string $expression:expr) => {
         match $expression {
             x if x == null() => None,
             x => Some(CStr::from_ptr(x).to_str().unwrap())
+        }
+    }
+}
+
+impl ZydisDecodedInstruction {
+    pub fn calc_absolute_target_address(&self, operand: &ZydisDecodedOperand) -> Result<u64, ZydisStatusCode> {
+        unsafe {
+            let mut address = 0u64;
+            check!(ZydisUtilsCalcAbsoluteTargetAddress(self, operand, &mut address), address)
         }
     }
 }

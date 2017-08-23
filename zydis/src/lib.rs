@@ -1,3 +1,4 @@
+#[macro_use]
 extern crate zydis_sys;
 
 use std::ffi::CStr;
@@ -7,22 +8,6 @@ use std::os::raw::c_void;
 pub use zydis_sys::*;
 
 pub type Result<T> = std::result::Result<T, ZydisStatusCode>;
-
-macro_rules! check {
-    ($expression:expr, $ok:expr) => {
-        match $expression as _ {
-            ZYDIS_STATUS_SUCCESS => Ok($ok),
-            e => Err(e),
-        }
-    };
-    (@option $expression:expr, $ok:expr) => {
-        match $expression as _ {
-            ZYDIS_STATUS_SUCCESS => Ok(Some($ok)),
-            ZYDIS_STATUS_NO_MORE_DATA => Ok(None),
-            e => Err(e),
-        }
-    }
-}
 
 pub fn encode_instruction(buffer: &mut [u8], request: &ZydisEncoderRequest) -> Result<usize> {
     unsafe {
