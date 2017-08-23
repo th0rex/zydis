@@ -159,11 +159,11 @@ impl Formatter {
         )
     }
 
-    pub fn set_hook(&mut self, hook: ZydisFormatterHookType, callback: usize) -> Result<usize> {
+    pub fn set_hook(&mut self, hook: ZydisFormatterHookTypes, callback: usize) -> Result<usize> {
         unsafe {
             let mut callback = callback as *const c_void;
             check!(
-                ZydisFormatterSetHook(&mut self.formatter, hook, &mut callback),
+                ZydisFormatterSetHook(&mut self.formatter, hook as _, &mut callback),
                 callback as _
             )
         }
